@@ -36,6 +36,18 @@ const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiter for 2FA verification: 5 attempts per 15 minutes to prevent brute force
+const verify2FALimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 2FA verification attempts per windowMs
+  message: {
+    success: false,
+    message: 'Too many 2FA verification attempts from this IP, please try again after 15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Rate limiter for login: 5 attempts per 15 minutes
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -322,7 +334,7 @@ router.put('/resetpassword/:resettoken', resetPassword);
  *       401:
  *         description: Invalid 2FA code
  */
-router.post('/verify-login-2fa', verifyLogin2FA);
+router.post('/verify-login-2fa', verify2FALimiter, verifyLogin2FA);
 
 /**
  * @swagger

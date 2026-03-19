@@ -7,3 +7,8 @@
 **Vulnerability:** The authentication endpoint (`/api/auth/verify-login-2fa`) used for verifying 6-digit TOTP tokens during login was not rate-limited. Since TOTP tokens are valid for 30 seconds and consist of only 6 digits (1,000,000 combinations), a lack of rate-limiting enables attackers to brute-force the 2FA token if they possess valid credentials.
 **Learning:** All endpoints that accept short, time-limited cryptographic tokens (like 6-digit TOTPs or SMS codes) must be strictly rate-limited to a low number of attempts (e.g., 5 attempts per 15 minutes) to computationally prevent brute-forcing within the token's validity window.
 **Prevention:** Always apply `express-rate-limit` (or similar) specifically tailored to 2FA verification endpoints.
+
+## 2026-03-19 - Prevent Predictable File Names for Uploads
+**Vulnerability:** File upload middlewares (`backend/src/middleware/upload.js`, `backend/src/middleware/avatarUpload.js`) were using `Math.random()` to generate unique file suffixes. `Math.random()` is not cryptographically secure, making generated filenames predictable. This predictability can lead to potential file collisions, overwriting of existing files, or unauthorized access if filenames are used as a security mechanism (e.g., unguessable URLs).
+**Learning:** Always use cryptographically secure pseudo-random number generators (CSPRNG), such as `crypto.randomBytes()`, when generating sensitive or unique identifiers like uploaded file names to ensure high entropy and unpredictability.
+**Prevention:** Replace all instances of `Math.random()` with `crypto.randomBytes(N).toString('hex')` (or similar secure methods) when generating unique file names, tokens, or other security-sensitive identifiers.

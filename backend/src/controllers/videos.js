@@ -10,6 +10,7 @@ import { isCloudinaryConfigured } from '../config/cloudinary.js';
 import { deleteVideoFiles } from '../utils/fileCleanup.js';
 import path from 'path';
 import fs from 'fs';
+import xss from 'xss';
 
 // Upload video
 export const uploadVideo = async (req, res, next) => {
@@ -513,7 +514,7 @@ export const addComment = async (req, res, next) => {
     const comment = await Comment.create({
       video: req.params.videoId,
       user: req.user.id,
-      content,
+      content: xss(content),
       parentComment: parentComment || null
     });
 

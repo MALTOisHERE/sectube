@@ -588,7 +588,7 @@ router.post('/setup-2fa', protect, setup2FA);
  *       400:
  *         description: Invalid token or 2FA not setup
  */
-router.post('/verify-2fa', protect, verify2FA);
+router.post('/verify-2fa', protect, verify2FALimiter, verify2FA);
 
 /**
  * @swagger

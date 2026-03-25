@@ -36,6 +36,18 @@ const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiter for password verification endpoints (update password, disable 2fa)
+const passwordAttemptLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 password attempts per windowMs
+  message: {
+    success: false,
+    message: 'Too many password attempts from this IP, please try again after 15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Rate limiter for 2FA verification: 5 attempts per 15 minutes to prevent brute force
 const verify2FALimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -457,7 +469,7 @@ router.get('/google/callback', passport.authenticate('google', {
  *       401:
  *         description: Current password is incorrect
  */
-router.put('/updatepassword', protect, updatePassword);
+router.put('/updatepassword', protect, passwordAttemptLimiter, updatePassword);
 
 /**
  * @swagger
@@ -618,6 +630,6 @@ router.post('/verify-2fa', protect, verify2FALimiter, verify2FA);
  *       401:
  *         description: Invalid password
  */
-router.post('/disable-2fa', protect, disable2FA);
+router.post('/disable-2fa', protect, passwordAttemptLimiter, disable2FA);
 
 export default router;

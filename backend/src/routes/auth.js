@@ -305,7 +305,7 @@ router.patch('/profile', protect, updateProfile);
  *       400:
  *         description: Invalid or expired token
  */
-router.put('/resetpassword/:resettoken', resetPassword);
+router.put('/resetpassword/:resettoken', passwordAttemptLimiter, resetPassword);
 
 /**
  * @swagger

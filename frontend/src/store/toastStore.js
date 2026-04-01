@@ -4,7 +4,11 @@ const useToastStore = create((set) => ({
   toasts: [],
 
   addToast: (toast) => {
-    const id = Date.now() + Math.random();
+    // 🛡️ Sentinel: Use cryptographically secure random values instead of Math.random()
+    const id = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).substring(2);
+
     const newToast = {
       id,
       type: toast.type || 'info', // success, error, warning, info

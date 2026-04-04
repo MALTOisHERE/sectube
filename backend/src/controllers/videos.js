@@ -15,6 +15,10 @@ import fs from 'fs';
 export const uploadVideo = async (req, res, next) => {
   try {
     if (!req.files || !req.files.video) {
+      // Clean up orphaned thumbnail if video is missing
+      if (req.files && req.files.thumbnail) {
+        req.files.thumbnail.forEach(file => fs.promises.unlink(file.path).catch(() => {}));
+      }
       return res.status(400).json({
         success: false,
         message: 'Please upload a video file'
@@ -69,6 +73,8 @@ export const uploadVideo = async (req, res, next) => {
         }
       }
     } catch (error) {
+      if (videoFile) fs.promises.unlink(videoFile.path).catch(() => {});
+      if (thumbnailFile) fs.promises.unlink(thumbnailFile.path).catch(() => {});
       return res.status(400).json({
         success: false,
         message: 'Invalid format for tags or toolsUsed'
@@ -132,6 +138,10 @@ export const uploadVideo = async (req, res, next) => {
       data: video
     });
   } catch (error) {
+    if (req.files) {
+      if (req.files.video) req.files.video.forEach(f => fs.promises.unlink(f.path).catch(() => {}));
+      if (req.files.thumbnail) req.files.thumbnail.forEach(f => fs.promises.unlink(f.path).catch(() => {}));
+    }
     next(error);
   }
 };

@@ -6,6 +6,7 @@ import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import fs from 'fs';
 
 // Register user
 export const register = async (req, res, next) => {
@@ -208,6 +209,7 @@ export const updateProfile = async (req, res, next) => {
           : req.body.specialties;
       }
     } catch (error) {
+      if (req.file) fs.promises.unlink(req.file.path).catch(() => {});
       return res.status(400).json({
         success: false,
         message: 'Invalid JSON format in socialLinks or specialties'
@@ -260,6 +262,7 @@ export const updateProfile = async (req, res, next) => {
       data: user
     });
   } catch (error) {
+    if (req.file) fs.promises.unlink(req.file.path).catch(() => {});
     next(error);
   }
 };

@@ -4,7 +4,9 @@ const useToastStore = create((set) => ({
   toasts: [],
 
   addToast: (toast) => {
-    const id = Date.now() + Math.random();
+    const id = typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID
+      ? window.crypto.randomUUID()
+      : Date.now() + '-' + Math.random().toString(36).substring(2);
     const newToast = {
       id,
       type: toast.type || 'info', // success, error, warning, info

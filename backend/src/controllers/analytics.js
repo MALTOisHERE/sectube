@@ -10,7 +10,7 @@ import Like from '../models/Like.js';
  * @returns {object} MongoDB date filter object
  */
 const getDateFilter = (timeRange, fieldName = 'uploadedAt') => {
-  if (timeRange === 'all' || !timeRange) return {};
+  if (timeRange === 'all' || !timeRange || typeof timeRange !== 'string') return {};
 
   const days = parseInt(timeRange.replace('d', ''));
   if (isNaN(days)) return {};
@@ -73,7 +73,7 @@ export const getOverviewStats = async (req, res, next) => {
     // or just total for all videos owned by the user.
     // Original logic was filtering videos by upload date.
     const filteredVideos = userVideos.filter(v => {
-      if (timeRange === 'all') return true;
+      if (timeRange === 'all' || typeof timeRange !== 'string') return true;
       const days = parseInt(timeRange.replace('d', ''));
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
@@ -208,7 +208,7 @@ export const getVideoPerformance = async (req, res, next) => {
 export const getTrendData = async (req, res, next) => {
   try {
     const timeRange = req.query.timeRange || '30d';
-    const days = timeRange === 'all' ? 30 : parseInt(timeRange.replace('d', ''));
+    const days = (timeRange === 'all' || typeof timeRange !== 'string') ? 30 : parseInt(timeRange.replace('d', ''));
     
     // Get user's video IDs
     const userVideos = await Video.find({ uploader: req.user._id }).select('_id likes uploadedAt');

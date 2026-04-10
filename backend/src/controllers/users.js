@@ -56,7 +56,7 @@ export const getUserVideos = async (req, res, next) => {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 12, 100));
     const skip = (page - 1) * limit;
-    const sort = req.query.sort || '-uploadedAt';
+    const sort = typeof req.query.sort === 'string' ? req.query.sort : '-uploadedAt';
 
     // Build query - only show public videos unless it's the owner
     const query = { uploader: user._id };

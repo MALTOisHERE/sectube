@@ -10,6 +10,7 @@ import Like from '../models/Like.js';
  * @returns {object} MongoDB date filter object
  */
 const getDateFilter = (timeRange, fieldName = 'uploadedAt') => {
+  if (typeof timeRange !== 'string') return {};
   if (timeRange === 'all' || !timeRange) return {};
 
   const days = parseInt(timeRange.replace('d', ''));
@@ -30,7 +31,7 @@ const getDateFilter = (timeRange, fieldName = 'uploadedAt') => {
  */
 export const getOverviewStats = async (req, res, next) => {
   try {
-    const timeRange = req.query.timeRange || '30d';
+    const timeRange = typeof req.query.timeRange === 'string' ? req.query.timeRange : '30d';
     const dateFilter = getDateFilter(timeRange, 'uploadedAt');
 
     // Get all videos for this user
@@ -122,9 +123,9 @@ export const getOverviewStats = async (req, res, next) => {
  */
 export const getVideoPerformance = async (req, res, next) => {
   try {
-    const timeRange = req.query.timeRange || '30d';
+    const timeRange = typeof req.query.timeRange === 'string' ? req.query.timeRange : '30d';
     const limit = Math.max(1, Math.min(parseInt(req.query.limit, 10) || 20, 100));
-    const sort = req.query.sort || 'views'; // 'views' or 'uploadedAt'
+    const sort = typeof req.query.sort === 'string' ? req.query.sort : 'views'; // 'views' or 'uploadedAt'
     const dateFilter = getDateFilter(timeRange);
 
     // Aggregation pipeline
@@ -207,7 +208,7 @@ export const getVideoPerformance = async (req, res, next) => {
  */
 export const getTrendData = async (req, res, next) => {
   try {
-    const timeRange = req.query.timeRange || '30d';
+    const timeRange = typeof req.query.timeRange === 'string' ? req.query.timeRange : '30d';
     const days = timeRange === 'all' ? 30 : parseInt(timeRange.replace('d', ''));
     
     // Get user's video IDs
@@ -318,7 +319,7 @@ export const getTrendData = async (req, res, next) => {
  */
 export const getCategoryDistribution = async (req, res, next) => {
   try {
-    const timeRange = req.query.timeRange || '30d';
+    const timeRange = typeof req.query.timeRange === 'string' ? req.query.timeRange : '30d';
     const dateFilter = getDateFilter(timeRange);
 
     const categories = await Video.aggregate([
@@ -362,7 +363,7 @@ export const getCategoryDistribution = async (req, res, next) => {
  */
 export const getDifficultyDistribution = async (req, res, next) => {
   try {
-    const timeRange = req.query.timeRange || '30d';
+    const timeRange = typeof req.query.timeRange === 'string' ? req.query.timeRange : '30d';
     const dateFilter = getDateFilter(timeRange);
 
     const difficulties = await Video.aggregate([

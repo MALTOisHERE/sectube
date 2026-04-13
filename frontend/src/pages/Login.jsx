@@ -22,6 +22,7 @@ const Login = () => {
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [tempUserId, setTempUserId] = useState('');
+  const [tempAuthToken, setTempAuthToken] = useState('');
 
   // Check for errors in URL (from SSO redirection)
   useEffect(() => {
@@ -66,6 +67,7 @@ const Login = () => {
       // Handle 2FA Requirement
       if (response.data.twoFactorRequired) {
         setTempUserId(response.data.userId);
+        setTempAuthToken(response.data.tempToken);
         setTwoFactorRequired(true);
         setLoading(false);
         return;
@@ -98,7 +100,8 @@ const Login = () => {
     try {
       const response = await authAPI.verifyLogin2FA({
         userId: tempUserId,
-        token: twoFactorToken
+        token: twoFactorToken,
+        tempToken: tempAuthToken
       });
 
       // Handle Remember Me (now that we are fully logged in)

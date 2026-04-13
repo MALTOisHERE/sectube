@@ -6,6 +6,7 @@ import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import jwt from 'jsonwebtoken';
 
 // Register user
 export const register = async (req, res, next) => {
@@ -157,10 +158,18 @@ export const login = async (req, res, next) => {
 
     // Check if 2FA is enabled
     if (user.isTwoFactorEnabled) {
+      // Create a temporary token valid for 5 minutes to prove password was verified
+      const tempToken = jwt.sign(
+        { id: user._id, is2FaTemp: true },
+        process.env.JWT_SECRET,
+        { expiresIn: '5m' }
+      );
+
       return res.status(200).json({
         success: true,
         twoFactorRequired: true,
-        userId: user._id
+        userId: user._id,
+        tempToken
       });
     }
 
@@ -613,7 +622,33 @@ export const disable2FA = async (req, res, next) => {
 // Verify 2FA during Login
 export const verifyLogin2FA = async (req, res, next) => {
   try {
-    const { userId, token } = req.body;
+    const { userId, token, tempToken } = req.body;
+
+    if (!tempToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required before 2FA'
+      });
+    }
+
+    // Verify the temporary token first
+    try {
+      const decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+
+      // Ensure token is valid for 2FA, matches the user, and has the temp flag
+      if (decoded.id !== userId || !decoded.is2FaTemp) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid authentication session'
+        });
+      }
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication session expired or invalid'
+      });
+    }
+
     const user = await User.findById(userId).select('+twoFactorSecret');
 
     if (!user || !user.twoFactorSecret) {

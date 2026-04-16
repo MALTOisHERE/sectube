@@ -6,6 +6,7 @@ import sendEmail from '../utils/sendEmail.js';
 import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
+import jwt from 'jsonwebtoken';
 
 // Register user
 export const register = async (req, res, next) => {
@@ -157,10 +158,14 @@ export const login = async (req, res, next) => {
 
     // Check if 2FA is enabled
     if (user.isTwoFactorEnabled) {
+      // Create a temporary token valid for 5 minutes for 2FA verification
+      const tempToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: '5m'
+      });
       return res.status(200).json({
         success: true,
         twoFactorRequired: true,
-        userId: user._id
+        tempToken
       });
     }
 
@@ -613,7 +618,26 @@ export const disable2FA = async (req, res, next) => {
 // Verify 2FA during Login
 export const verifyLogin2FA = async (req, res, next) => {
   try {
-    const { userId, token } = req.body;
+    const { tempToken, token } = req.body;
+
+    if (!tempToken || !token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        message: 'Session expired or invalid. Please login again.'
+      });
+    }
+
+    const userId = decoded.id;
     const user = await User.findById(userId).select('+twoFactorSecret');
 
     if (!user || !user.twoFactorSecret) {

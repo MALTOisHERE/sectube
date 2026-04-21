@@ -24,7 +24,9 @@ export const register = async (req, res, next) => {
     const { username, email, password } = req.body;
 
     // Check if user exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    const safeEmail = typeof email === 'string' ? email : '';
+    const safeUsername = typeof username === 'string' ? username : '';
+    const userExists = await User.findOne({ $or: [{ email: safeEmail || null }, { username: safeUsername || null }] });
     
     if (userExists) {
       // SILENT SUCCESS: Send security email instead of error
@@ -127,8 +129,9 @@ export const login = async (req, res, next) => {
     const { identifier, password } = req.body;
 
     // Find user by email or username and include password
+    const safeIdentifier = typeof identifier === 'string' ? identifier : '';
     const user = await User.findOne({
-      $or: [{ email: identifier }, { username: identifier }]
+      $or: [{ email: safeIdentifier || null }, { username: safeIdentifier || null }]
     }).select('+password');
 
     if (!user) {
@@ -396,7 +399,8 @@ const sendTokenResponse = (user, statusCode, res) => {
 // Forgot password
 export const forgotPassword = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const safeEmail = typeof req.body.email === 'string' ? req.body.email : '';
+    const user = await User.findOne({ email: safeEmail || null });
 
     if (!user) {
       // Return success even if user not found to prevent enumeration

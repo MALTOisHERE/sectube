@@ -96,6 +96,14 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
+const forgotPasswordValidation = [
+  body('email').isEmail().withMessage('Please include a valid email')
+];
+
+const resetPasswordValidation = [
+  body('password').isLength({ min: 6 }).withMessage('Please enter a password with 6 or more characters')
+];
+
 /**
  * @swagger
  * tags:
@@ -181,7 +189,7 @@ router.post('/login', loginLimiter, loginValidation, login);
  *       200:
  *         description: Email sent
  */
-router.post('/forgotpassword', forgotPasswordLimiter, forgotPassword);
+router.post('/forgotpassword', forgotPasswordLimiter, forgotPasswordValidation, forgotPassword);
 
 /**
  * @swagger
@@ -305,7 +313,7 @@ router.patch('/profile', protect, updateProfile);
  *       400:
  *         description: Invalid or expired token
  */
-router.put('/resetpassword/:resettoken', resetPassword);
+router.put('/resetpassword/:resettoken', resetPasswordValidation, resetPassword);
 
 /**
  * @swagger

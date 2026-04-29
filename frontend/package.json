@@ -13,7 +13,7 @@
   "dependencies": {
     "@uiw/react-markdown-preview": "^5.2.0",
     "axios": "^1.6.2",
-    "date-fns": "^3.0.0",
+    "date-fns": "^4.1.0",
     "emoji-picker-react": "^4.18.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

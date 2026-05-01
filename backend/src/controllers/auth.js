@@ -399,6 +399,14 @@ const sendTokenResponse = (user, statusCode, res) => {
 // Forgot password
 export const forgotPassword = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
     const safeEmail = typeof req.body.email === 'string' ? req.body.email : '';
     const user = await User.findOne({ email: safeEmail || null });
 
@@ -469,6 +477,14 @@ export const forgotPassword = async (req, res, next) => {
 // Reset password
 export const resetPassword = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
     // Get hashed token
     const resetPasswordToken = crypto
       .createHash('sha256')
